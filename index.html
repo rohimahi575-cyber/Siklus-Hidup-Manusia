@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chrono Quest: Penjelajah Waktu Kehidupan</title>
+<style>
+:root{--bg:#f6f3ec;--card:#fff;--tx:#1f2430;--mu:#5d6475;--ac:#5b3fd1;--ac2:#e8e2ff;--ok:#1d7a46;--okb:#dff3e6;--no:#b3261e;--nob:#fbe4e2;--bd:#d9d4c7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14161d;--card:#1e222c;--tx:#eceef4;--mu:#a3a9ba;--ac:#9d86ff;--ac2:#2c2750;--ok:#6fd49a;--okb:#16352482;--no:#ff8f86;--nob:#3d1d1b;--bd:#343a49}}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:760px;margin:0 auto;padding:16px}
+h1{font-size:1.7rem;margin:.2em 0}h2{font-size:1.25rem;margin:.2em 0}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin:12px 0}
+.mu{color:var(--mu);font-size:.9rem}
+button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:9px 14px}
+button.p{background:var(--ac);color:#fff;border-color:var(--ac);font-weight:600}
+button:disabled{opacity:.5;cursor:default}
+.opt{display:block;width:100%;text-align:left;margin:6px 0}
+.opt.sel{background:var(--ac2);border-color:var(--ac)}
+.map{display:flex;gap:6px;margin:10px 0;flex-wrap:wrap}
+.node{flex:1;min-width:70px;text-align:center;padding:8px 4px;border-radius:10px;background:var(--card);border:1px solid var(--bd);font-size:.8rem}
+.node.on{background:var(--ac);color:#fff;border-color:var(--ac)}.node.done{background:var(--okb);border-color:var(--ok)}
+.bar{height:8px;background:var(--ac2);border-radius:8px;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac)}
+.pool,.col{min-height:48px;border:2px dashed var(--bd);border-radius:10px;padding:6px;margin:6px 0;display:flex;flex-wrap:wrap;gap:6px}
+.col.hot{border-color:var(--ac);background:var(--ac2)}
+.chip{padding:6px 10px;border-radius:20px;background:var(--ac2);border:1px solid var(--ac);cursor:grab;user-select:none;font-size:.92rem}
+.chip.sel{background:var(--ac);color:#fff}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fb{border-radius:10px;padding:10px 12px;margin-top:12px}.fb.ok{background:var(--okb)}.fb.no{background:var(--nob)}
+select,textarea{font:inherit;width:100%;box-sizing:border-box;padding:8px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx)}
+.row{display:flex;gap:8px;align-items:center;margin:6px 0}.row>span{flex:1}.row select{width:auto;max-width:48%}
+.badge{display:inline-block;padding:4px 10px;border-radius:20px;background:var(--ac2);margin:3px;font-size:.9rem}
+table{border-collapse:collapse;width:100%;font-size:.85rem}td,th{border:1px solid var(--bd);padding:4px;text-align:center}
+.wrap{overflow-x:auto}
+.key{background:var(--ac2);padding:10px;border-radius:10px;font-size:.9rem;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const Z=[
+{n:"🌱 Lembah Awal Mula",s:"Prenatal",quest:"Telusuri perjalanan zigot menjadi janin dan analisis ciri tiap periode prenatal.",b:"Benih Kehidupan"},
+{n:"🧸 Dataran Tumbuh Kembang",s:"Bayi & Anak",quest:"Bedakan pertumbuhan dan perkembangan, lalu analisis peran hormon pada bayi dan anak.",b:"Penjaga Tunas"},
+{n:"⚡ Pegunungan Badai Hormon",s:"Remaja & Dewasa",quest:"Analisis perubahan pubertas dan peran hormon pada remaja dan dewasa.",b:"Penakluk Badai"},
+{n:"🏰 Kastil Senja",s:"Lansia + Boss",quest:"Analisis perubahan fisiologis pada dewasa akhir dan lansia, lalu hadapi Sang Penjaga Waktu.",b:"Penyusun Waktu"}];
+const Q=[
+{z:0,t:"mc",q:"Tahap perkembangan embrio saat terbentuk tiga lapisan lembaga (ektoderm, mesoderm, endoderm) disebut ...",o:["Pembelahan (cleavage)","Gastrulasi","Implantasi","Fertilisasi","Morulasi"],a:1,ex:"Gastrulasi membentuk tiga lapisan lembaga."},
+{z:0,t:"mcx",q:"Pilih SEMUA pernyataan yang benar tentang masa prenatal:",o:["Fertilisasi umumnya terjadi di tuba fallopi","Implantasi blastosis ke endometrium terjadi pada periode germinal","Plasenta seluruhnya berasal dari jaringan ibu","Organogenesis berlangsung terutama pada periode embrionik","Pada periode janin, semua organ baru mulai terbentuk dari awal"],a:[0,1,3],ex:"Plasenta berasal dari korion (janin) dan endometrium (ibu); periode janin berfokus pada pertumbuhan dan pematangan organ."},
+{z:1,t:"tf",q:"Tentukan Benar atau Salah:",s:[["Pertumbuhan bersifat kuantitatif dan irreversible.",1,""],["Laju pertambahan tinggi tercepat setelah lahir hanya terjadi pada masa remaja.",0,"Tahun pertama jauh lebih cepat."],["Hormon pertumbuhan (GH) dihasilkan hipofisis anterior; kekurangannya pada anak dapat menyebabkan tubuh kerdil.",1,""],["Kekurangan tiroksin pada bayi dapat menyebabkan kretinisme.",1,""]],ex:""},
+{z:1,t:"drag",q:"Seret (atau ketuk kartu lalu ketuk kolom) ke kategori yang tepat:",cols:["Pertumbuhan","Perkembangan"],c:[["Bertambahnya tinggi badan",0],["Mampu berbicara dalam kalimat",1],["Lingkar kepala membesar",0],["Kemampuan berpikir abstrak",1],["Bertambahnya berat badan",0],["Kematangan emosi",1],["Jumlah gigi bertambah",0],["Koordinasi motorik halus",1]],ex:"Pertumbuhan = perubahan kuantitatif (ukuran); perkembangan = kematangan fungsi/kemampuan."},
+{z:2,t:"mc",q:"Anak laki-laki 13 tahun mengalami perubahan suara dan mulai tumbuh kumis. Hormon penyebab dan tempat produksinya adalah ...",o:["Estrogen, ovarium","Testosteron, sel Leydig testis","Progesteron, korpus luteum","Tiroksin, kelenjar tiroid","FSH, testis"],a:1,ex:"Testosteron diproduksi sel Leydig di testis."},
+{z:2,t:"match",q:"Jodohkan hormon dengan fungsi utamanya:",l:["Testosteron","Estrogen","Progesteron","LH","GnRH"],r:["Mempertahankan endometrium agar tebal untuk kehamilan","Merangsang sel Leydig menghasilkan testosteron","Ciri kelamin sekunder pria & mendukung spermatogenesis","Ciri kelamin sekunder wanita & pematangan folikel","Dari hipotalamus, merangsang hipofisis melepas FSH dan LH"],a:[2,3,0,1,4],ex:""},
+{z:2,t:"order",q:"Urutkan tahapan prenatal berikut (gunakan tombol ▲ ▼):",items:["Fertilisasi","Pembelahan (cleavage)","Morula","Blastosis","Implantasi","Gastrulasi","Organogenesis"],ex:""},
+{z:3,t:"mcx",q:"Pilih SEMUA perubahan yang umum terjadi pada lansia:",o:["Massa tulang menurun sehingga risiko osteoporosis meningkat","Elastisitas kulit menurun","Menopause terjadi akibat menurunnya produksi estrogen","Kepadatan tulang meningkat","Laju metabolisme basal meningkat"],a:[0,1,2],ex:"Kepadatan tulang dan BMR justru menurun."}];
+const Boss=[
+{q:"<b>Tahap 1: Analisis Data.</b> Data tinggi badan:<div class='wrap'><table><tr><th>Usia</th><td>Lahir</td><td>1</td><td>5</td><td>10</td><td>12</td><td>14</td><td>17</td><td>30</td><td>70</td></tr><tr><th>cm</th><td>50</td><td>75</td><td>108</td><td>135</td><td>150</td><td>160</td><td>162</td><td>162</td><td>159</td></tr></table></div>a) Hitung laju pertambahan tinggi (cm/tahun) tiap interval, tentukan dua periode tertinggi. b) Jelaskan faktor hormonal lonjakan remaja dan mengapa tinggi berhenti setelah ±17 th. c) Jelaskan penurunan tinggi pada usia 70 th.",k:"a) Laju: 0-1 th = 25; 1-5 ≈ 8,25; 5-10 = 5,4; 10-12 = 7,5; 12-14 = 5; 14-17 ≈ 0,67. Tertinggi: tahun pertama (25) dan 10-12 th (7,5). b) GH bersama hormon seks dan tiroksin; setelah pubertas lempeng epifisis menutup (osifikasi) sehingga tulang panjang tak bertambah panjang. c) Penurunan massa tulang, penipisan diskus intervertebralis, perubahan postur tulang belakang."},
+{q:"<b>Tahap 2: Analisis Kasus.</b> Ibu hamil terpapar zat teratogen (alkohol dan obat tertentu) pada minggu ke-5. Bayi lahir dengan cacat jantung dan tabung saraf. Jelaskan mengapa waktu paparan ini lebih berisiko dibanding minggu ke-30, kaitkan dengan lapisan lembaga.",k:"Minggu 3-8 adalah puncak organogenesis; jantung (mesoderm) dan sistem saraf (ektoderm) sedang terbentuk sehingga gangguan menyebabkan cacat struktural. Minggu ke-30 organ sudah terbentuk, tahap janin berfokus pada pertumbuhan dan pematangan sehingga dampak cenderung fungsional."},
+{q:"<b>Tahap 3: Argumentasi.</b> Remaja 15 tahun menjalani diet sangat ketat dan sering begadang karena gim. Susun minimal 3 argumen ilmiah tentang dampaknya terhadap pertumbuhan dan perkembangannya.",k:"Nutrisi (protein, kalsium) kurang menghambat pertumbuhan tulang dan otot; GH dilepas terutama saat tidur lelap sehingga begadang menurunkan sekresinya; gangguan hormon seks dan perkembangan psikososial/kognitif. Skor penuh jika ≥3 argumen terkait mekanisme biologis."}];
+const $=s=>document.getElementById(s);
+let S={scr:"intro",z:0,i:0,pts:[0,0,0,0],tr:[0,0,0,0],boss:[0,0,0],bs:0,a:null,chk:false,sel:null,mult:1,zp:0};
+const zq=z=>Q.filter(q=>q.z==z);
+const shuf=n=>{let a=[...Array(n).keys()];do{a.sort(()=>Math.random()-.5)}while(a.every((v,i)=>v==i)&&n>1);return a};
+function initA(q){
+ if(q.t=="mc")return null;
+ if(q.t=="mcx")return q.o.map(_=>false);
+ if(q.t=="tf")return q.s.map(_=>-1);
+ if(q.t=="drag")return q.c.map(_=>-1);
+ if(q.t=="match")return q.l.map(_=>-1);
+ if(q.t=="order")return shuf(q.items.length)}
+function nav(){return `<div class="map">${Z.map((z,i)=>`<div class="node ${S.scr!="intro"&&i==S.z?"on":(S.pts[i]>0&&S.scr!="intro"&&i<S.z?"done":"")}">${z.n.split(" ")[0]}<br>${z.s}</div>`).join("")}</div>`}
+const tot=()=>S.pts.reduce((a,b)=>a+b,0)+S.boss.reduce((a,b)=>a+b,0);
+function render(){
+ const a=$("app");let h="";
+ if(S.scr=="intro"){
+  h=`<h1>🕰️ Chrono Quest</h1><div class="mu">Penjelajah Waktu Kehidupan · Biologi XII · Pertumbuhan dan Perkembangan Manusia</div>
+  <div class="card"><p>Jam Kehidupan di Menara Chronos retak dan waktu manusia kacau: bayi berbicara seperti lansia, remaja berhenti tumbuh sebelum waktunya. Kalian adalah <b>Penjelajah Waktu</b>. Tempuh 4 zona, kuasai siklus hidup manusia, lalu kalahkan <b>Sang Penjaga Waktu</b> untuk memperbaiki jam tersebut.</p>
+  <p class="mu">Aturan: +10 poin per soal. Lulus zona jika ≥70% poin. Jika belum lulus, masuk Kuil Pemulihan (ulang dengan poin setengah). Maksimum 80 poin zona + 60 poin Boss = 140.</p>
+  <button class="p" onclick="S.scr='zi';render()">Mulai Petualangan</button></div>`}
+ else if(S.scr=="zi"){const z=Z[S.z];
+  h=nav()+`<div class="card"><h2>${z.n}</h2><p><b>Misi Utama:</b> ${z.quest}</p><p class="mu">Imbalan: lencana "${z.b}" (≥70% poin zona)${S.mult<1?" · Mode Kuil Pemulihan: poin setengah":""}</p><button class="p" onclick="S.i=0;S.zp=0;S.a=initA(zq(S.z)[0]);S.chk=false;S.scr='q';render()">Masuk Zona</button></div>`}
+ else if(S.scr=="q"){const qs=zq(S.z),q=qs[S.i];
+  h=nav()+`<div class="bar"><i style="width:${S.i/qs.length*100}%"></i></div><div class="mu">Soal ${S.i+1}/${qs.length} · Skor tim: ${tot()+S.zp}</div><div class="card"><div class="mu">${{mc:"Pilihan Ganda",mcx:"Pilihan Ganda Kompleks",tf:"Benar / Salah",drag:"Drag and Drop",match:"Menjodohkan",order:"Mengurutkan"}[q.t]}</div><p><b>${q.q}</b></p><div id="body">${body(q)}</div><div id="fb"></div><p><button class="p" id="go" onclick="${S.chk?"next()":"check()"}">${S.chk?"Lanjut ▶":"Periksa Jawaban"}</button></p></div>`}
+ else if(S.scr=="zr"){const mx=zq(S.z).length*10,ok=S.zp>=.7*mx;
+  h=nav()+`<div class="card"><h2>Hasil ${Z[S.z].n}</h2><p>Poin zona: <b>${S.zp}/${mx}</b> (${Math.round(S.zp/mx*100)}%)</p>${ok?`<p>🏅 Lencana <b>${Z[S.z].b}</b> diraih!</p><button class="p" onclick="advance()">${S.z<3?"Ke Zona Berikutnya ▶":"Hadapi Boss Battle 👑"}</button>`:`<p>Belum mencapai ambang 70%. Kalian masuk <b>Kuil Pemulihan</b>: minta 1 petunjuk dari guru, lalu ulangi zona (poin setengah).</p><button class="p" onclick="S.mult=.5;S.scr='zi';render()">Ulangi Zona</button> <button onclick="advance()">Lanjut tanpa lencana</button>`}</div>`}
+ else if(S.scr=="boss"){const b=Boss[S.bs];
+  h=`<div class="mu">👑 BOSS BATTLE · Sang Penjaga Waktu · Skor tim: ${tot()}</div><div class="card"><p>${b.q}</p><textarea id="ans" rows="6" placeholder="Tulis jawaban tim di sini..."></textarea><p><button onclick="$('k').style.display='block'">Lihat Kunci / Rubrik</button></p><div class="key" id="k" style="display:none">${b.k}<p>Nilai jawaban tim (0-20), diisi guru atau penilaian sejawat:<br><input type="range" min="0" max="20" value="0" id="sc" oninput="$('sv').textContent=this.value"> <b id="sv">0</b>/20</p></div><p><button class="p" onclick="bossNext()">${S.bs<2?"Tahap Berikutnya ▶":"Selesai ▶"}</button></p></div>`}
+ else{const t=tot(),w=S.boss.reduce((a,b)=>a+b,0)>=36;
+  h=`<h1>${w?"🎉 Jam Kehidupan Pulih!":"⏳ Jam Hampir Pulih"}</h1><div class="card"><p>Total: <b>${t}/140</b> · Nilai: <b>${Math.round(t/140*100)}</b></p><p>Lencana:</p>${Z.map((z,i)=>S.pts[i]>=.7*zq(i).length*10?`<span class="badge">🏅 ${z.b}</span>`:"").join("")}${w?`<span class="badge">🥇 Master Chronos</span>`:""}<p class="mu">Refleksi: tuliskan satu konsep paling penting yang kalian pelajari hari ini.</p><button class="p" onclick="S={scr:'intro',z:0,i:0,pts:[0,0,0,0],tr:[0,0,0,0],boss:[0,0,0],bs:0,a:null,chk:false,sel:null,mult:1,zp:0};render()">Main Lagi</button></div>`}
+ a.innerHTML=h}
+function body(q){
+ const A=S.a,L=S.chk,ch="ABCDEFG";
+ if(q.t=="mc")return q.o.map((o,i)=>`<button class="opt ${A===i?"sel":""}" ${L?"disabled":""} onclick="S.a=${i};render()">${ch[i]}. ${o}</button>`).join("");
+ if(q.t=="mcx")return q.o.map((o,i)=>`<button class="opt ${A[i]?"sel":""}" ${L?"disabled":""} onclick="S.a[${i}]=!S.a[${i}];render()">${A[i]?"☑":"☐"} ${o}</button>`).join("");
+ if(q.t=="tf")return q.s.map((s,i)=>`<div class="row"><span>${i+1}. ${s[0]}</span><button class="${A[i]===1?"sel opt":""}" ${L?"disabled":""} onclick="S.a[${i}]=1;render()" style="width:auto">B</button><button class="${A[i]===0?"sel opt":""}" ${L?"disabled":""} onclick="S.a[${i}]=0;render()" style="width:auto">S</button></div>`).join("");
+ if(q.t=="match")return q.l.map((l,i)=>`<div class="row"><span>${i+1}. ${l}</span><select ${L?"disabled":""} onchange="S.a[${i}]=+this.value">${["<option value='-1'>Pilih...</option>"].concat(q.r.map((r,j)=>`<option value="${j}" ${A[i]===j?"selected":""}>${ch[j].toLowerCase()}. ${r}</option>`)).join("")}</select></div>`).join("");
+ if(q.t=="order")return A.map((v,p)=>`<div class="row"><span>${p+1}. ${q.items[v]}</span><button ${L||p==0?"disabled":""} onclick="mv(${p},-1)">▲</button><button ${L||p==A.length-1?"disabled":""} onclick="mv(${p},1)">▼</button></div>`).join("");
+ if(q.t=="drag"){const cd=i=>`<span class="chip ${S.sel===i?"sel":""}" draggable="${!L}" ondragstart="S.sel=${i}" onclick="${L?"":"S.sel=S.sel===" + i + "?null:" + i + ";render()"}">${q.c[i][0]}</span>`;
+  const col=k=>`<div><b>${q.cols[k]}</b><div class="col" ondragover="event.preventDefault();this.classList.add('hot')" ondragleave="this.classList.remove('hot')" ondrop="event.preventDefault();put(${k})" onclick="put(${k},1)">${A.map((v,i)=>v===k?cd(i):"").join("")}</div></div>`;
+  return `<div class="pool" ondragover="event.preventDefault()" ondrop="put(-1)" onclick="put(-1,1)">${A.map((v,i)=>v===-1?cd(i):"").join("")||'<span class="mu">Semua kartu sudah ditempatkan</span>'}</div><div class="cols">${col(0)}${col(1)}</div>`}}
+function put(k,tap){if(S.chk||S.sel===null)return;if(tap&&event.target.classList.contains("chip"))return;S.a[S.sel]=k;S.sel=null;render()}
+function mv(p,d){const A=S.a;[A[p],A[p+d]]=[A[p+d],A[p]];render()}
+function check(){
+ const q=zq(S.z)[S.i],A=S.a;let f=0,key="";const ch="abcdefg";
+ if(q.t=="mc"){f=A===q.a?1:0;key="Jawaban: "+q.o[q.a]}
+ if(q.t=="mcx"){f=q.o.every((_,i)=>A[i]===q.a.includes(i))?1:0;key="Jawaban: "+q.a.map(i=>q.o[i]).join("; ")}
+ if(q.t=="tf"){f=q.s.filter((s,i)=>A[i]===s[1]).length/q.s.length;key=q.s.map((s,i)=>`${i+1}. ${s[1]?"Benar":"Salah"}${s[2]?" ("+s[2]+")":""}`).join("<br>")}
+ if(q.t=="drag"){f=q.c.filter((c,i)=>A[i]===c[1]).length/q.c.length;key=q.cols.map((c,k)=>`<b>${c}:</b> `+q.c.filter(x=>x[1]==k).map(x=>x[0]).join(", ")).join("<br>")}
+ if(q.t=="match"){f=q.a.filter((v,i)=>A[i]===v).length/q.a.length;key=q.l.map((l,i)=>`${l} → ${ch[q.a[i]]}. ${q.r[q.a[i]]}`).join("<br>")}
+ if(q.t=="order"){f=A.filter((v,p)=>v===p).length/A.length;key=q.items.join(" → ")}
+ const p=Math.round(f*10*S.mult*10)/10;S.zp+=p;S.chk=true;
+ $("fb").className="fb "+(f==1?"ok":"no");
+ $("fb").innerHTML=`<b>${f==1?"✅ Benar!":f>0?"🟡 Sebagian benar":"❌ Belum tepat"}</b> +${p} poin<br>${key}${q.ex?"<br><i>"+q.ex+"</i>":""}`;
+ $("go").textContent="Lanjut ▶";$("go").setAttribute("onclick","next()");
+ document.querySelectorAll("#body button,#body select").forEach(e=>e.disabled=true);
+ document.querySelectorAll("#body .chip").forEach(e=>e.draggable=false)}
+function next(){
+ const qs=zq(S.z);
+ if(S.i<qs.length-1){S.i++;S.a=initA(qs[S.i]);S.chk=false;S.sel=null;render()}
+ else{S.pts[S.z]=Math.max(S.pts[S.z],S.zp);S.scr="zr";render()}}
+function advance(){S.mult=1;if(S.z<3){S.z++;S.scr="zi"}else{S.scr="boss";S.bs=0}render()}
+function bossNext(){S.boss[S.bs]=+$("sc").value;if(S.bs<2){S.bs++}else S.scr="end";render()}
+render();
+</script>
+</body>
+</html>
